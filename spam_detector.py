@@ -1,7 +1,21 @@
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    roc_auc_score,
+    confusion_matrix,
+    ConfusionMatrixDisplay
+)
+
+from sklearn.model_selection import cross_val_score
+
+import matplotlib.pyplot as plt
 import pandas as pd
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
 import tkinter as tk
 
@@ -24,9 +38,98 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 model = MultinomialNB()
 model.fit(X_train, y_train)
 
-# accuracy
-print("Accuracy:", model.score(X_test,y_test))
 
+lr = LogisticRegression(max_iter=1000)
+lr.fit(X_train, y_train)
+
+# accuracy
+# Predictions
+
+nb_pred = model.predict(X_test)
+lr_pred = lr.predict(X_test)
+
+# Probabilities for ROC-AUC
+
+nb_prob = model.predict_proba(X_test)[:,1]
+lr_prob = lr.predict_proba(X_test)[:,1]
+
+print("===== Naive Bayes =====")
+
+print("Accuracy:",
+      accuracy_score(y_test, nb_pred))
+
+print("Precision:",
+      precision_score(y_test, nb_pred))
+
+print("Recall:",
+      recall_score(y_test, nb_pred))
+
+print("F1 Score:",
+      f1_score(y_test, nb_pred))
+
+print("ROC-AUC:",
+      roc_auc_score(y_test, nb_prob))
+
+
+print("\n===== Logistic Regression =====")
+
+print("Accuracy:",
+      accuracy_score(y_test, lr_pred))
+
+print("Precision:",
+      precision_score(y_test, lr_pred))
+
+print("Recall:",
+      recall_score(y_test, lr_pred))
+
+print("F1 Score:",
+      f1_score(y_test, lr_pred))
+
+print("ROC-AUC:",
+      roc_auc_score(y_test, lr_prob))
+scores = cross_val_score(
+    model,
+    X,
+    y,
+    cv=5,
+    scoring="accuracy"
+)
+
+print("\nCross Validation Scores:")
+print(scores)
+
+print("Average CV Accuracy:",
+      scores.mean())
+# Confusion Matrix
+
+cm = confusion_matrix(y_test, nb_pred)
+
+disp = ConfusionMatrixDisplay(cm)
+
+disp.plot()
+
+plt.show()
+# Accuracy Comparison Plot
+
+models = [
+    "Naive Bayes",
+    "Logistic Regression"
+]
+
+accuracies = [
+    accuracy_score(y_test, nb_pred),
+    accuracy_score(y_test, lr_pred)
+]
+
+plt.figure(figsize=(6,4))
+
+plt.bar(models, accuracies)
+
+plt.title("Model Accuracy Comparison")
+
+plt.ylabel("Accuracy")
+
+plt.show()
 # test message
 msg = ["Congratulations you won free lottery"]
 
